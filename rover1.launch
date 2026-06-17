@@ -1,0 +1,105 @@
+<launch>
+
+  <!-- ================= SIM TIME ================= -->
+  <arg name="use_sim_time" default="true"/>
+  <param name="use_sim_time" value="$(arg use_sim_time)"/>
+
+  <arg name="gui" default="true"/>
+
+  <arg name="world_file" default="$(find rover_control)/scripts/lab_environment1.world"/>
+
+  <!-- ================= GAZEBO WORLD ================= -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="world_name" value="$(arg world_file)"/>
+  </include>
+
+  <!-- ================= CONTROLLER GAINS ================= -->
+  <rosparam>
+    gazebo_ros_control:
+      pid_gains:
+        shoulder_pitch_joint: {p: 120, i: 0, d: 2}
+        shoulder_roll_joint: {p: 120, i: 0, d: 2}
+        elbow_joint: {p: 100, i: 0, d: 2}
+        wrist_joint: {p: 80, i: 0, d: 1}
+        gripper_joint: {p: 50, i: 0, d: 0.5}
+  </rosparam>
+
+  <!-- ================================================= -->
+  <!-- ================= ROVER URDF ==================== -->
+  <!-- ================================================= -->
+
+  <param name="rover_description"
+         command="$(find xacro)/xacro '$(find rover_control)/urdf/rover1.xacro'"/>
+
+  <node name="spawn_rover"
+        pkg="gazebo_ros"
+        type="spawn_model"
+        args="-urdf -param rover_description -model rover -x -1 -y -2.5 -z 0.1"
+        output="screen"/>
+
+  <!-- ================================================= -->
+  <!-- ============== MANIPULATOR URDF ================= -->
+  <!-- ================================================= -->
+
+  <param name="robot_description"
+         command="$(find xacro)/xacro '$(find rover_control)/urdf/manipulator.xacro'"/>
+
+  <node name="spawn_manipulator"
+        pkg="gazebo_ros"
+        type="spawn_model"
+        args="-urdf -param robot_description -model manipulator -x -2.2 -y -2.5 -z 0.2"
+        output="screen"/>
+
+  <!-- ================================================= -->
+  <!-- ========== ROBOT STATE PUBLISHER ================= -->
+  <!-- ================================================= -->
+
+  <node name="robot_state_publisher"
+        pkg="robot_state_publisher"
+        type="robot_state_publisher"
+        output="screen"/>
+
+  <!-- ================================================= -->
+  <!-- ========== JOINT STATE PUBLISHER ================ -->
+  <!-- ================================================= -->
+
+  <node name="joint_state_publisher"
+      pkg="joint_state_publisher"
+      type="joint_state_publisher"
+      output="screen"/>
+ 
+  <!-- ================================================= -->
+  <!-- ========== CONTROLLERS =========================== -->
+  <!-- ================================================= -->
+
+  <rosparam file="$(find rover_control)/config/arm_controllers.yaml" command="load"/>
+
+  <node name="controller_spawner"
+        pkg="controller_manager"
+        type="spawner"
+        args="arm_controller joint_state_controller"
+        output="screen"
+        launch-prefix="bash -c 'sleep 5; $0 $@'"/>
+
+  <!-- ================================================= -->
+  <!-- ========== MANIPULATOR NODE ===================== -->
+  <!-- ================================================= -->
+
+  <node name="manipulator_task"
+        pkg="rover_control"
+        type="manipulator_task.py"
+        output="screen"/>
+
+  <!-- ================================================= -->
+  <!-- ========== ROVER NODE =========================== -->
+  <!-- ================================================= -->
+
+  <node name="rover_task"
+        pkg="rover_control"
+        type="rover_task.py"
+        output="screen"/>
+
+</launch>
