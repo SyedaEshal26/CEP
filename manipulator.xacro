@@ -1,0 +1,379 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="industrial_arm_5dof">
+
+  <!-- MATERIALS -->
+  <material name="grey"><color rgba="0.5 0.5 0.5 1.0"/></material>
+  <material name="green"><color rgba="0 1 0 1"/></material>
+  <material name="blue"><color rgba="0 0 1 1"/></material>
+  <material name="purple"><color rgba="0.5 0 0.5 1"/></material>
+  <material name="yellow"><color rgba="1 0.84 0 1"/></material>
+  <material name="red"><color rgba="1 0 0 1"/></material>
+
+  <!-- BASE - EXTRA HEAVY FOR STABILITY WITH LONGER ARM -->
+  <link name="base_link">
+    <visual>
+      <geometry><cylinder radius="0.30" length="0.15"/></geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.30" length="0.15"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="50.0"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.8" iyy="0.8" izz="0.5" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- SHOULDER JOINT - Mounted higher -->
+  <joint name="shoulder_pitch_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="shoulder_sphere_link"/>
+    <origin xyz="0 0 0.15"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14" upper="3.14" effort="100" velocity="2.0"/>
+  </joint>
+
+  <!-- SHOULDER SPHERE -->
+  <link name="shoulder_sphere_link">
+    <visual><geometry><sphere radius="0.10"/></geometry><material name="grey"/></visual>
+    <collision><geometry><sphere radius="0.10"/></geometry></collision>
+    <inertial>
+      <mass value="1.5"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- SHOULDER ROLL JOINT -->
+  <joint name="shoulder_roll_joint" type="revolute">
+    <parent link="shoulder_sphere_link"/>
+    <child link="upper_arm_link"/>
+    <origin xyz="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.0" upper="1.8" effort="150" velocity="1.5"/>
+  </joint>
+
+  <!-- UPPER ARM -->
+  <link name="upper_arm_link">
+    <visual>
+      <origin xyz="0 0 0.30"/>
+      <geometry><box size="0.12 0.12 0.60"/></geometry>
+      <material name="green"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.30"/>
+      <geometry><box size="0.12 0.12 0.60"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="2.0"/>
+      <origin xyz="0 0 0.30"/>
+      <inertia ixx="0.02" iyy="0.02" izz="0.02" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- ELBOW JOINT -->
+  <joint name="elbow_joint" type="revolute">
+    <parent link="upper_arm_link"/>
+    <child link="elbow_sphere_link"/>
+    <origin xyz="0 0 0.60"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.8" upper="2.5" effort="80" velocity="2.0"/>
+  </joint>
+
+  <!-- ELBOW SPHERE -->
+  <link name="elbow_sphere_link">
+    <visual><geometry><sphere radius="0.09"/></geometry><material name="grey"/></visual>
+    <collision><geometry><sphere radius="0.09"/></geometry></collision>
+    <inertial>
+      <mass value="1.0"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.008" iyy="0.008" izz="0.008" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- FOREARM FIXED JOINT - ADDED ORIGIN -->
+  <joint name="forearm_fixed" type="fixed">
+    <parent link="elbow_sphere_link"/>
+    <child link="forearm_link"/>
+    <origin xyz="0 0 0"/>
+  </joint>
+
+  <!-- FOREARM -->
+  <link name="forearm_link">
+    <visual>
+      <origin xyz="0 0 0.30"/>
+      <geometry><box size="0.10 0.10 0.60"/></geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.30"/>
+      <geometry><box size="0.10 0.10 0.60"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="1.6"/>
+      <origin xyz="0 0 0.30"/>
+      <inertia ixx="0.016" iyy="0.016" izz="0.016" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- WRIST JOINT -->
+  <joint name="wrist_joint" type="revolute">
+    <parent link="forearm_link"/>
+    <child link="wrist_sphere_link"/>
+    <origin xyz="0 0 0.60"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.0" upper="1.8" effort="40" velocity="3.0"/>
+  </joint>
+
+  <!-- WRIST SPHERE -->
+  <link name="wrist_sphere_link">
+    <visual><geometry><sphere radius="0.08"/></geometry><material name="grey"/></visual>
+    <collision><geometry><sphere radius="0.08"/></geometry></collision>
+    <inertial>
+      <mass value="0.6"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.006" iyy="0.006" izz="0.006" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- PALM FIXED JOINT - ADDED ORIGIN -->
+  <joint name="palm_fixed" type="fixed">
+    <parent link="wrist_sphere_link"/>
+    <child link="palm_link"/>
+    <origin xyz="0 0 0.04"/>
+  </joint>
+
+  <!-- PALM -->
+  <link name="palm_link">
+    <visual>
+      <origin xyz="0 0 0.04"/>
+      <geometry><box size="0.16 0.16 0.08"/></geometry>
+      <material name="purple"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.04"/>
+      <geometry><box size="0.16 0.16 0.08"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.4"/>
+      <origin xyz="0 0 0.04"/>
+      <inertia ixx="0.004" iyy="0.004" izz="0.004" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- GRIPPER JOINT -->
+  <joint name="gripper_joint" type="revolute">
+    <parent link="palm_link"/>
+    <child link="f1_link"/>
+    <origin xyz="0.08 0 0.08"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.8" upper="0" effort="20" velocity="2.0"/>
+  </joint>
+
+  <!-- FINGER 1 -->
+  <link name="f1_link">
+    <visual>
+      <origin xyz="0 0 0.06"/>
+      <geometry><cylinder radius="0.02" length="0.15"/></geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.06"/>
+      <geometry><cylinder radius="0.02" length="0.15"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.15"/>
+      <origin xyz="0 0 0.06"/>
+      <inertia ixx="0.0008" iyy="0.0008" izz="0.0008" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- F2 JOINT -->
+  <joint name="f2_joint" type="revolute">
+    <parent link="palm_link"/>
+    <child link="f2_link"/>
+    <origin xyz="-0.08 0.08 0.08"/>
+    <axis xyz="0 1 0"/>
+    <mimic joint="gripper_joint" multiplier="-1.0"/>
+    <limit lower="0" upper="0.8" effort="20" velocity="2.0"/>
+  </joint>
+
+  <!-- FINGER 2 -->
+  <link name="f2_link">
+    <visual>
+      <origin xyz="0 0 0.06"/>
+      <geometry><cylinder radius="0.02" length="0.15"/></geometry>
+      <material name="red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.06"/>
+      <geometry><cylinder radius="0.02" length="0.15"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.15"/>
+      <origin xyz="0 0 0.06"/>
+      <inertia ixx="0.0008" iyy="0.0008" izz="0.0008" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- F3 JOINT -->
+  <joint name="f3_joint" type="revolute">
+    <parent link="palm_link"/>
+    <child link="f3_link"/>
+    <origin xyz="-0.08 -0.08 0.08"/>
+    <axis xyz="0 1 0"/>
+    <mimic joint="gripper_joint" multiplier="-1.0"/>
+    <limit lower="0" upper="0.8" effort="20" velocity="2.0"/>
+  </joint>
+
+  <!-- FINGER 3 -->
+  <link name="f3_link">
+    <visual>
+      <origin xyz="0 0 0.06"/>
+      <geometry><cylinder radius="0.02" length="0.15"/></geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.06"/>
+      <geometry><cylinder radius="0.02" length="0.15"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.15"/>
+      <origin xyz="0 0 0.06"/>
+      <inertia ixx="0.0008" iyy="0.0008" izz="0.0008" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- GAZEBO MATERIAL MAPPINGS -->
+  <gazebo reference="base_link">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <gazebo reference="upper_arm_link">
+    <material>Gazebo/Green</material>
+  </gazebo>
+
+  <gazebo reference="forearm_link">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <gazebo reference="palm_link">
+    <material>Gazebo/Purple</material>
+  </gazebo>
+
+  <gazebo reference="f1_link">
+    <material>Gazebo/Yellow</material>
+  </gazebo>
+
+  <gazebo reference="f2_link">
+    <material>Gazebo/Red</material>
+  </gazebo>
+
+  <gazebo reference="f3_link">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <!-- GAZEBO ROS CONTROL -->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so"/>
+  </gazebo>
+
+  <!-- TRANSMISSIONS -->
+  <transmission name="shoulder_pitch_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="shoulder_pitch_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor1">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="shoulder_roll_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="shoulder_roll_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor2">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="elbow_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="elbow_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor3">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="wrist_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wrist_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor4">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="gripper_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="gripper_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor5">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <!-- ULTRASONIC SENSOR -->
+  <link name="ultrasonic_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="6.28318 6.28318 4.7124"/>
+      <geometry>
+        <mesh filename="package://rover_control/meshes/ultrasonic.dae" scale="0.007 0.005 0.005"/>
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.06"/>
+      <inertia ixx="0.0006" iyy="0.0006" izz="0.0006" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <joint name="ultrasonic_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="ultrasonic_link"/>
+    <origin xyz="0.44 0.002 0.11"/>
+  </joint>
+
+  <gazebo reference="ultrasonic_link">
+    <sensor type="ray" name="ultrasonic_sensor">
+      <update_rate>20</update_rate>
+      <ray>
+        <range>
+          <min>0.02</min>
+          <max>7.0</max>
+        </range>
+      </ray>
+      <plugin name="ultra_plugin" filename="libgazebo_ros_range.so">
+        <robotNamespace>/manipulator</robotNamespace>
+        <topicName>ultrasonic</topicName>
+        <frameName>ultrasonic_link</frameName>
+        <radiation>ultrasound</radiation>
+        <fov>0.5</fov>
+        <gaussianNoise>0.0</gaussianNoise>
+        <updateRate>20</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+</robot>
