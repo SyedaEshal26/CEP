@@ -1,0 +1,88 @@
+<launch>
+
+  <!-- ================= SIM TIME ================= -->
+  <arg name="use_sim_time" default="true"/>
+  <param name="use_sim_time" value="$(arg use_sim_time)"/>
+
+  <arg name="gui" default="true"/>
+
+  <arg name="world_file"
+       default="$(find rover_control)/worlds/lab_environment1.world"/>
+
+  <!-- ================= GAZEBO WORLD ================= -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="world_name" value="$(arg world_file)"/>
+  </include>
+  
+  <!-- ================================================= -->
+  <!-- ========== JOINT STATE PUBLISHER ================ -->
+  <!-- ================================================= -->
+
+  <node name="joint_state_publisher"
+      pkg="joint_state_publisher"
+      type="joint_state_publisher"
+      output="screen"/>
+  <!-- ================================================= -->
+  <!-- ================= PID GAINS ====================== -->
+  <!-- ================================================= -->
+
+  <rosparam>
+    gazebo_ros_control:
+      pid_gains:
+        shoulder_pitch_joint: {p: 120.0, i: 0.0, d: 2.0}
+        shoulder_roll_joint:  {p: 120.0, i: 0.0, d: 2.0}
+        elbow_joint:          {p: 100.0, i: 0.0, d: 2.0}
+        wrist_joint:          {p: 80.0,  i: 0.0, d: 1.0}
+        gripper_joint:        {p: 50.0,  i: 0.0, d: 0.5}
+  </rosparam>
+
+  <!-- ================================================= -->
+  <!-- ================= ROVER URDF ==================== -->
+  <!-- ================================================= -->
+
+  <!-- IMPORTANT: Load as robot_description -->
+  <param name="robot_description"
+         command="$(find xacro)/xacro $(find rover_description)/urdf/oel.xacro"/>
+
+  <!-- Spawn robot -->
+  <node name="spawn_rover"
+        pkg="gazebo_ros"
+        type="spawn_model"
+        args="-urdf -param robot_description -model rover -x -1 -y -2.5 -z 0.1"
+        output="screen"/>
+
+  <!-- ================================================= -->
+  <!-- ========== ROBOT STATE PUBLISHER ================= -->
+  <!-- ================================================= -->
+
+  <node name="robot_state_publisher"
+        pkg="robot_state_publisher"
+        type="robot_state_publisher"
+        output="screen"/>
+
+  <!-- ================================================= -->
+  <!-- ========== CONTROLLERS =========================== -->
+  <!-- ================================================= -->
+
+  <rosparam file="$(find rover_control)/config/arm_controllers.yaml"
+            command="load"/>
+
+  <node name="controller_spawner"
+        pkg="controller_manager"
+        type="spawner"
+        args="arm_controller joint_state_controller"
+        output="screen"
+        launch-prefix="bash -c 'sleep 5; $0 $@'"/>
+
+  <!-- ================================================= -->
+  <!-- ================== LPATH NODE =================== -->
+  <!-- ================================================= -->
+
+  <node name="lpath_node"
+        pkg="rover_description"
+        type="Lpath.py"
+        output="screen"/>
+</launch>
