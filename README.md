@@ -344,7 +344,7 @@ The launch file should start the Gazebo environment, robot models, required ROS 
 
 ## 📜 License
 
-This project was developed as an academic robotics project. Add an appropriate open-source license here if the source code is intended for public distribution.
+This project was developed as an academic robotics project. 
 
 ---
 
